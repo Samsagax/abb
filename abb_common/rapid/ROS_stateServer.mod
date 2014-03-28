@@ -41,6 +41,7 @@ PROC main()
     ROS_wait_for_client server_socket, client_socket;
     
 	WHILE (TRUE) DO
+	  send_state;
 		send_joints;
 		WaitTime update_rate;
     ENDWHILE
@@ -54,6 +55,42 @@ ERROR (ERR_SOCK_TIMEOUT, ERR_SOCK_CLOSED)
 		TRYNEXT;
 	ENDIF
 UNDO
+ENDPROC
+
+LOCAL PROC send_state()
+	VAR ROS_msg_robot_status message;
+	VAR num drives_powered;
+	VAR num e_stopped;
+	VAR num error_code;
+	VAR num in_error;
+	VAR num in_motion;
+	VAR num mode;
+	VAR num motion_possible;
+	
+	! get current status
+	drives_powered := 0;
+	e_stopped := 0;
+	error_code := 0;
+	in_error := 0;
+	in_motion := 0;
+	mode := 0;
+	motion_possible := 0;
+	
+	! create message
+	message.header := [ROS_MSG_TYPE_ROBOT_STATUS, ROS_COM_TYPE_TOPIC, ROS_REPLY_TYPE_INVALID];
+	message.drives_powered := drives_powered;
+	message.e_stopped := e_stopped;
+	message.error_code := error_code;
+	message.in_error := in_error;
+	message.in_motion := in_motion;
+	message.mode := mode;
+	message.motion_possible := motion_possible;
+	
+	! send message to client
+	ROS_send_msg_robot_status client_socket, message;
+	
+ERROR
+	RAISE; ! raise error to calling code
 ENDPROC
 
 LOCAL PROC send_joints()
